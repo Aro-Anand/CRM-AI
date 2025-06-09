@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Call Logs - AI Voice Assistant</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <!-- Add Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">AI Voice Assistant CRM</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('crm.dashboard') }}"
+                >Dashboard</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="{{ url_for('admin_calls') }}"
+                >Calls</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('admin_customers') }}"
+                >Customers</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mt-4">
+      <h2>Call Logs</h2>
+
+      <!-- Filters -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <form class="row g-3">
+            <div class="col-md-3">
+              <label for="status" class="form-label">Status</label>
+              <select class="form-select" id="status">
+                <option value="">All</option>
+                <option value="completed">Completed</option>
+                <option value="failed">Failed</option>
+                <option value="initiated">Initiated</option>
+                <option value="connected">Connected</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label for="dateRange" class="form-label">Date Range</label>
+              <select class="form-select" id="dateRange">
+                <option value="24h">Last 24 Hours</option>
+                <option value="7d">Last 7 Days</option>
+                <option value="30d">Last 30 Days</option>
+                <option value="all">All Time</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label for="search" class="form-label">Search</label>
+              <input
+                type="text"
+                class="form-control"
+                id="search"
+                placeholder="Search calls..."
+              />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">&nbsp;</label>
+              <button type="submit" class="btn btn-primary d-block">
+                Apply Filters
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Calls Table -->
+      <div class="card">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Call ID</th>
+                  <th>Customer</th>
+                  <th>Phone</th>
+                  <th>Time</th>
+                  <th>Status</th>
+                  <th>Duration</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for call in calls %}
+                <tr>
+                  <td>{{ call.call_id }}</td>
+                  <td>{{ call.customer_name }}</td>
+                  <td>{{ call.customer_phone }}</td>
+                  <td>{{ call.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                  <td>
+                    <span
+                      class="badge {% if call.status == 'completed' %}bg-success{% elif call.status == 'failed' %}bg-danger{% else %}bg-warning{% endif %}"
+                    >
+                      {{ call.status }}
+                    </span>
+                  </td>
+                  <td>{{ call.duration_seconds or 0 }}s</td>
+                  <td>
+                    <button
+                      class="btn btn-sm btn-info"
+                      onclick="viewDetails('{{ call.call_id }}')"
+                    >
+                      View
+                    </button>
+                    {% if call.status == 'failed' %}
+                    <button
+                      class="btn btn-sm btn-warning"
+                      onclick="retryCall('{{ call.call_id }}')"
+                    >
+                      Retry
+                    </button>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Call Details -->
+    <div class="modal fade" id="callDetailsModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Call Details</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body" id="callDetailsContent">
+            <!-- Content will be loaded dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      function viewDetails(callId) {
+        // Fetch and display call details in modal
+        fetch(`/api/calls/${callId}`)
+          .then((response) => response.json())
+          .then((data) => {
+            const content = document.getElementById("callDetailsContent");
+            // Format and display the data
+            content.innerHTML = formatCallDetails(data);
+
+            // Show the modal
+            const modal = new bootstrap.Modal(
+              document.getElementById("callDetailsModal")
+            );
+            modal.show();
+          });
+      }
+
+      function retryCall(callId) {
+        if (confirm("Are you sure you want to retry this call?")) {
+          fetch("/api/retry-failed-call", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ call_id: callId }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.success) {
+                alert("Call retry initiated successfully!");
+                location.reload();
+              } else {
+                alert("Failed to retry call: " + data.message);
+              }
+            });
+        }
+      }
+
+      function formatCallDetails(data) {
+        return `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Basic Information</h6>
+                        <p><strong>Call ID:</strong> ${data.call_id}</p>
+                        <p><strong>Customer:</strong> ${data.customer_name}</p>
+                        <p><strong>Phone:</strong> ${data.customer_phone}</p>
+                        <p><strong>Email:</strong> ${data.email || "-"}</p>
+                        <p><strong>Status:</strong> ${data.status}</p>
+                        <p><strong>Duration:</strong> ${
+                          data.duration_seconds
+                        }s</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Additional Details</h6>
+                        <p><strong>Room Name:</strong> ${data.room_name}</p>
+                        <p><strong>Dispatch ID:</strong> ${data.dispatch_id}</p>
+                        <p><strong>Query:</strong> ${data.query || "-"}</p>
+                        <p><strong>Created:</strong> ${new Date(
+                          data.created_at
+                        ).toLocaleString()}</p>
+                    </div>
+                </div>
+            `;
+      }
+    </script>
+  </body>
+</html>

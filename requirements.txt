@@ -1,0 +1,12 @@
+flask==3.0.0
+flask-cors==4.0.0
+python-dotenv==1.0.0
+livekit
+livekit-agents
+livekit-plugins-openai
+livekit-plugins-deepgram
+livekit-plugins-elevenlabs
+livekit-plugins-silero
+aiohttp
+werkzeug
+# sqlite3

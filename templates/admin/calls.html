@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Call Logs - Admin Panel</title>
+    <link rel="stylesheet" href="/static/css/admin.css" />
+  </head>
+  <body>
+    <h1>Call Logs</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Call ID</th>
+          <th>Customer</th>
+          <th>Room</th>
+          <th>Status</th>
+          <th>Duration</th>
+          <th>Created At</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for call in calls %}
+        <tr>
+          <td>{{ call.call_id }}</td>
+          <td>{{ call.customer_name }} ({{ call.customer_phone }})</td>
+          <td>{{ call.room_name }}</td>
+          <td>{{ call.status }}</td>
+          <td>{{ call.duration_seconds }}s</td>
+          <td>{{ call.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>

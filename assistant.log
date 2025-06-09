@@ -1,0 +1,80 @@
+2025-06-09 20:23:45,875 - call_assistant - INFO - Starting SheraAI Assistant Agent
+2025-06-09 20:23:45,876 - call_assistant - INFO -  Webhook URL configured: http://localhost:8080/webhook
+2025-06-09 20:23:45,882 - livekit.agents - INFO - starting worker
+2025-06-09 20:23:45,883 - livekit.agents - INFO - starting inference executor
+2025-06-09 20:23:45,912 - livekit.agents - INFO - initializing process
+2025-06-09 20:23:48,604 - livekit.agents - DEBUG - initializing inference runner
+2025-06-09 20:24:15,916 - livekit.agents - INFO - killing process
+2025-06-09 20:24:15,918 - livekit.agents - ERROR - worker failed
+Traceback (most recent call last):
+  File "C:\Users\Arockia anand raj\AppData\Local\Programs\Python\Python312\Lib\asyncio\tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "D:\Livekit_Recording_Test\aitest\Lib\site-packages\livekit\agents\ipc\channel.py", line 47, in arecv_message
+    return _read_message(await dplx.recv_bytes(), messages)
+                         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Livekit_Recording_Test\aitest\Lib\site-packages\livekit\agents\utils\aio\duplex_unix.py", line 35, in recv_bytes
+    len_bytes = await self._reader.readexactly(4)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Arockia anand raj\AppData\Local\Programs\Python\Python312\Lib\asyncio\streams.py", line 752, in readexactly
+    await self._wait_for_data('readexactly')
+  File "C:\Users\Arockia anand raj\AppData\Local\Programs\Python\Python312\Lib\asyncio\streams.py", line 545, in _wait_for_data
+    await self._waiter
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Livekit_Recording_Test\aitest\Lib\site-packages\livekit\agents\cli\_run.py", line 88, in _worker_run
+    await worker.run()
+  File "D:\Livekit_Recording_Test\aitest\Lib\site-packages\livekit\agents\worker.py", line 409, in run
+    await self._inference_executor.initialize()
+  File "D:\Livekit_Recording_Test\aitest\Lib\site-packages\livekit\agents\ipc\supervised_proc.py", line 168, in initialize
+    init_res = await asyncio.wait_for(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Arockia anand raj\AppData\Local\Programs\Python\Python312\Lib\asyncio\tasks.py", line 519, in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Arockia anand raj\AppData\Local\Programs\Python\Python312\Lib\asyncio\timeouts.py", line 115, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+2025-06-09 20:24:16,101 - livekit.agents - INFO - draining worker
+2025-06-09 20:26:55,330 - call_assistant - INFO - Starting SheraAI Assistant Agent
+2025-06-09 20:26:55,331 - call_assistant - INFO -  Webhook URL configured: http://localhost:8080/webhook
+2025-06-09 20:26:55,335 - livekit.agents - INFO - starting worker
+2025-06-09 20:26:55,336 - livekit.agents - INFO - starting inference executor
+2025-06-09 20:26:55,369 - livekit.agents - INFO - initializing process
+2025-06-09 20:26:58,151 - livekit.agents - DEBUG - initializing inference runner
+2025-06-09 20:27:07,809 - livekit.agents - DEBUG - inference runner initialized
+2025-06-09 20:27:07,810 - livekit.agents - INFO - process initialized
+2025-06-09 20:27:07,810 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-06-09 20:27:07,839 - livekit.agents - INFO - initializing job runner
+2025-06-09 20:27:07,840 - livekit.agents - INFO - initializing job runner
+2025-06-09 20:27:07,840 - livekit.agents - INFO - initializing job runner
+2025-06-09 20:27:07,841 - livekit.agents - INFO - initializing job runner
+2025-06-09 20:27:07,841 - livekit.agents - INFO - initializing job runner
+2025-06-09 20:27:07,842 - livekit.agents - INFO - initializing job runner
+2025-06-09 20:27:07,842 - livekit.agents - INFO - initializing job runner
+2025-06-09 20:27:07,843 - livekit.agents - INFO - initializing job runner
+2025-06-09 20:27:07,843 - livekit.agents - INFO - initializing job runner
+2025-06-09 20:27:07,843 - livekit.agents - INFO - initializing job runner
+2025-06-09 20:27:07,844 - livekit.agents - INFO - initializing job runner
+2025-06-09 20:27:07,844 - livekit.agents - INFO - initializing job runner
+2025-06-09 20:27:07,858 - livekit.agents - INFO - job runner initialized
+2025-06-09 20:27:07,859 - livekit.agents - INFO - job runner initialized
+2025-06-09 20:27:07,859 - livekit.agents - INFO - job runner initialized
+2025-06-09 20:27:07,860 - livekit.agents - INFO - job runner initialized
+2025-06-09 20:27:07,860 - livekit.agents - INFO - job runner initialized
+2025-06-09 20:27:07,861 - livekit.agents - INFO - job runner initialized
+2025-06-09 20:27:07,861 - livekit.agents - INFO - job runner initialized
+2025-06-09 20:27:07,861 - livekit.agents - INFO - job runner initialized
+2025-06-09 20:27:07,862 - livekit.agents - INFO - job runner initialized
+2025-06-09 20:27:07,862 - livekit.agents - INFO - job runner initialized
+2025-06-09 20:27:07,863 - livekit.agents - INFO - job runner initialized
+2025-06-09 20:27:07,864 - livekit.agents - INFO - job runner initialized
+2025-06-09 20:27:07,865 - livekit.agents - INFO - see tracing information at http://localhost:8081/debug
+2025-06-09 20:27:08,357 - livekit.agents - INFO - registered worker
+2025-06-09 20:35:35,104 - livekit.agents - INFO - draining worker
+2025-06-09 20:35:35,108 - livekit.agents - INFO - shutting down worker
+2025-06-09 20:35:35,154 - livekit.agents - INFO - process exiting
+2025-06-09 20:35:35,712 - livekit.agents - WARNING - exiting forcefully

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get a Call with Our Agent</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Floating Call Button -->
+    <div class="floating-call-btn" id="callBtn">
+        <i class="fas fa-phone"></i>
+    </div>
+
+    <!-- Form Container -->
+    <div class="form-container" id="formContainer">
+        <div class="form-header">
+            <h4>AI call assistant</h4>
+            <span class="close-btn" id="closeBtn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div class="form-body">
+            <form id="callForm">
+                <div class="form-floating">
+                    <label for="name">Full Name</label>
+                    <input type="text" class="form-control" id="name" name="name" 
+                           placeholder="Enter your full name" required>
+                </div>
+                
+                <div class="form-floating">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" class="form-control" id="phone" name="phone" 
+                           placeholder="+91 XXXX XXXX XX" required>
+                </div>
+                
+                <div class="form-floating">
+                    <label for="email">Email Address</label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           placeholder="name@example.com" required>
+                </div>
+                
+                <div class="form-floating">
+                    <label for="query">What would you like to discuss?</label>
+                    <textarea class="form-control" id="query" name="query" 
+                              placeholder="Tell us about your requirements" style="height: 120px"></textarea>
+                </div>
+                
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-phone"></i>
+                    <span>Request a Call</span>
+                </button>
+            </form>
+            
+            <div id="responseMessage" class="alert">
+                <!-- Response message will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

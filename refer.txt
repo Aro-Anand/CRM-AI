@@ -1,0 +1,32 @@
+# Get SIP TRUNK
+
+    If there are outdated or incorrect profiles, remove them:
+        
+        --> twilio profiles:remove <profile_name>
+
+
+
+--> STEPS:
+    I.Prerequisites:
+        1.Purchase phone number
+        2.Install the Twilio CLI
+        3.Create Twilio Profile
+            3.1. SID = ACb8ed80960b594567b133afc55c4853ba
+            3.2. Auth Token = ba015891791b93541889dfa4eee2a4a1
+
+    1. Create a SIP Trunk:
+        1.0. Creating API key:
+            --> Login with Credentials:
+                Created API Key SK68cdea9f7c1f76eb82c2ee0aec340a5b and stored the secret in Config. See: https://www.twilio.com/console/runtime/api-keys/SK68cdea9f7c1f76eb82c2ee0aec340a5b
+                twilio-cli configuration saved to "C:\Users\Arockia anand raj\.twilio-cli\config.json"
+                Saved Anand.
+
+
+        1.1. # OPTION 1 (recommended)
+            --> set TWILIO_ACCOUNT_SID=ACb8ed80960b594567b133afc55c4853ba
+            --> set TWILIO_API_KEY=SK68cdea9f7c1f76eb82c2ee0aec340a5b
+            --> set TWILIO_API_SECRET=ba015891791b93541889dfa4eee2a4a1
+        
+        
+        1.2. twilio api trunking v1 trunks create --friendly-name "Test Trunk" --domain-name "test-trunk.pstn.twilio.com"  
+            --> O/P: Trunk SID: 

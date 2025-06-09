@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analytics - AI Voice Assistant</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">AI Voice Assistant CRM</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('crm.dashboard') }}"
+                >Dashboard</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('admin_calls') }}">Calls</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('admin_customers') }}"
+                >Customers</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="{{ url_for('crm.metrics') }}"
+                >Analytics</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mt-4">
+      <h1 class="mb-4">Analytics Dashboard</h1>
+
+      <!-- Date Range Selector -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <form class="row g-3" id="dateRangeForm">
+            <div class="col-md-4">
+              <label for="startDate" class="form-label">Start Date</label>
+              <input
+                type="date"
+                class="form-control"
+                id="startDate"
+                name="startDate"
+              />
+            </div>
+            <div class="col-md-4">
+              <label for="endDate" class="form-label">End Date</label>
+              <input
+                type="date"
+                class="form-control"
+                id="endDate"
+                name="endDate"
+              />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">&nbsp;</label>
+              <button type="submit" class="btn btn-primary d-block w-100">
+                Update Analytics
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Charts Row 1 -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Call Distribution</h5>
+            </div>
+            <div class="card-body">
+              <canvas id="callDistribution"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Customer Growth</h5>
+            </div>
+            <div class="card-body">
+              <canvas id="customerGrowth"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row 2 -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Call Duration Distribution</h5>
+            </div>
+            <div class="card-body">
+              <canvas id="durationDistribution"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Hourly Call Volume</h5>
+            </div>
+            <div class="card-body">
+              <canvas id="hourlyVolume"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Section -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Export Data</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4">
+              <a
+                href="{{ url_for('crm.export_calls') }}"
+                class="btn btn-success w-100"
+              >
+                Export Call Data (CSV)
+              </a>
+            </div>
+            <div class="col-md-4">
+              <button class="btn btn-info w-100" onclick="exportCustomerData()">
+                Export Customer Data (CSV)
+              </button>
+            </div>
+            <div class="col-md-4">
+              <button class="btn btn-warning w-100" onclick="exportAnalytics()">
+                Export Analytics Report (PDF)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Set default date range (last 30 days)
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+
+        document.getElementById("startDate").value = startDate
+          .toISOString()
+          .split("T")[0];
+        document.getElementById("endDate").value = endDate
+          .toISOString()
+          .split("T")[0];
+
+        // Load initial data
+        loadAnalytics();
+
+        // Form submission
+        document
+          .getElementById("dateRangeForm")
+          .addEventListener("submit", function (e) {
+            e.preventDefault();
+            loadAnalytics();
+          });
+      });
+
+      function loadAnalytics() {
+        const startDate = document.getElementById("startDate").value;
+        const endDate = document.getElementById("endDate").value;
+
+        fetch(
+          `/api/metrics/summary?start_date=${startDate}&end_date=${endDate}`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            updateCharts(data);
+          })
+          .catch((error) => console.error("Error loading analytics:", error));
+      }
+
+      function updateCharts(data) {
+        // Update each chart with the new data
+        // Implementation details in main.js
+      }
+
+      function exportCustomerData() {
+        window.location.href = "/api/customers/export";
+      }
+
+      function exportAnalytics() {
+        // Implementation for analytics PDF export
+      }
+    </script>
+  </body>
+</html>

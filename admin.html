@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Voice Assistant - Admin Panel</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+        position: relative;
+      }
+
+      .header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .header p {
+        font-size: 1.1em;
+        opacity: 0.9;
+      }
+
+      .status-indicator {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .status-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #27ae60;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.7;
+          transform: scale(1.1);
+        }
+      }
+
+      .main-content {
+        padding: 30px;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-align: center;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+      }
+
+      .stat-number {
+        font-size: 36px;
+        font-weight: bold;
+        margin-bottom: 8px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .stat-label {
+        font-size: 14px;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .debug-panel {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 25px;
+      }
+
+      .debug-panel h3 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-size: 1.4em;
+      }
+
+      .debug-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+
+      .debug-buttons button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .debug-buttons button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-primary {
+        background: #007bff;
+        color: white;
+      }
+      .btn-success {
+        background: #28a745;
+        color: white;
+      }
+      .btn-warning {
+        background: #ffc107;
+        color: #000;
+      }
+      .btn-info {
+        background: #17a2b8;
+        color: white;
+      }
+      .btn-danger {
+        background: #dc3545;
+        color: white;
+      }
+
+      .table-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-bottom: 25px;
+      }
+
+      .table-header {
+        background: #2c3e50;
+        color: white;
+        padding: 15px 20px;
+        font-size: 1.2em;
+        font-weight: 600;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow-x: auto;
+        display: block;
+        white-space: nowrap;
+      }
+
+      thead,
+      tbody,
+      tr {
+        display: table;
+        width: 100%;
+        table-layout: fixed;
+      }
+
+      th {
+        background: #34495e;
+        color: white;
+        padding: 15px 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      td {
+        padding: 12px;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: top;
+        word-wrap: break-word;
+        white-space: normal;
+      }
+
+      tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+
+      tr:hover {
+        background: #e3f2fd;
+      }
+
+      .status {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+
+      .status-started {
+        background-color: #4caf50;
+        color: white;
+      }
+
+      .status-completed {
+        background-color: #2196f3;
+        color: white;
+      }
+
+      .status-failed {
+        background-color: #f44336;
+        color: white;
+      }
+
+      .call-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .error-message {
+        color: #f44336;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #f44336;
+        border-radius: 4px;
+      }
+
+      .connection-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .connection-indicator {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #dc3545;
+        transition: background 0.3s ease;
+      }
+
+      .connection-indicator.connected {
+        background: #28a745;
+      }
+
+      .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .analytics-chart {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+      }
+
+      .empty-state h3 {
+        margin-bottom: 10px;
+        color: #495057;
+      }
+
+      .refresh-indicator {
+        display: none;
+        color: #007bff;
+        font-size: 12px;
+        margin-left: 10px;
+      }
+
+      .refresh-indicator.active {
+        display: inline-block;
+      }
+
+      .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+        border: 1px solid #f5c6cb;
+      }
+
+      @media (max-width: 768px) {
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .debug-buttons {
+          flex-direction: column;
+        }
+
+        .action-buttons {
+          flex-direction: column;
+        }
+
+        table {
+          font-size: 12px;
+        }
+
+        th,
+        td {
+          padding: 8px 6px;
+        }
+
+        .header h1 {
+          font-size: 1.8em;
+        }
+
+        .status-indicator {
+          position: relative;
+          top: auto;
+          right: auto;
+          justify-content: center;
+          margin-top: 15px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🤖 AI Voice Assistant</h1>
+        <p>Real-time Call Monitoring & Analytics Dashboard</p>
+        <div class="status-indicator">
+          <div class="status-dot"></div>
+          <span>System Online</span>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <!-- Connection Status -->
+        <div class="connection-status">
+          <div class="connection-indicator" id="connectionIndicator"></div>
+          <span id="connectionStatus">Connecting to event stream...</span>
+          <span class="refresh-indicator" id="refreshIndicator">
+            <span class="loading-spinner"></span> Refreshing...
+          </span>
+        </div>
+
+        <!-- Analytics Dashboard -->
+        <div class="debug-panel">
+          <h3>📊 Real-time Analytics</h3>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-number" id="totalCalls">0</div>
+              <div class="stat-label">Total Calls</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="successfulCalls">0</div>
+              <div class="stat-label">Successful</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="failedCalls">0</div>
+              <div class="stat-label">Failed</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="avgDuration">0s</div>
+              <div class="stat-label">Avg Duration</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="activeConnections">0</div>
+              <div class="stat-label">Active Calls</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="queueSize">0</div>
+              <div class="stat-label">Queue Size</div>
+            </div>
+          </div>
+
+          <div class="debug-buttons">
+            <button class="btn-primary" onclick="refreshStats()">
+              🔄 Refresh Stats
+            </button>
+            <button class="btn-success" onclick="exportData()">
+              📥 Export Data
+            </button>
+            <button class="btn-info" onclick="viewAnalytics()">
+              📈 View Analytics
+            </button>
+            <button class="btn-warning" onclick="testWebhook()">
+              🧪 Test Webhook
+            </button>
+            <button class="btn-danger" onclick="clearLogs()">
+              🗑️ Clear Logs
+            </button>
+          </div>
+        </div>
+
+        <!-- System Health -->
+        <div class="debug-panel">
+          <h3>⚡ System Health</h3>
+          <div class="debug-buttons">
+            <button class="btn-info" onclick="checkHealth()">
+              🏥 Health Check
+            </button>
+            <button class="btn-primary" onclick="testDirectQueue()">
+              📤 Test Queue
+            </button>
+            <button class="btn-warning" onclick="simulateCall()">
+              📞 Simulate Call
+            </button>
+            <button class="btn-success" onclick="viewLogs()">
+              📋 View System Logs
+            </button>
+          </div>
+        </div>
+
+        <!-- Customer Call Data -->
+        <div class="table-container">
+          <div class="table-header">
+            📞 Customer Call History & Real-time Status
+          </div>
+
+          <table id="customerTable">
+            <thead>
+              <tr>
+                <th style="width: 15%">Customer</th>
+                <th style="width: 12%">Phone</th>
+                <th style="width: 15%">Email</th>
+                <th style="width: 15%">Query</th>
+                <th style="width: 12%">Timestamp</th>
+                <th style="width: 10%">Status</th>
+                <th style="width: 8%">Duration</th>
+                <th style="width: 8%">Outcome</th>
+                <th style="width: 5%">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="customerTableBody">
+              <tr class="empty-state">
+                <td colspan="9">
+                  <div>
+                    <h3>🔍 No customer data yet</h3>
+                    <p>
+                      Call data will appear here in real-time when customers
+                      initiate calls
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Real-time Logs -->
+        <div class="debug-panel">
+          <h3>📜 Real-time Event Logs</h3>
+          <div class="log-container" id="logContainer">
+            <div class="log-entry">
+              <span class="log-timestamp">[System Ready]</span>
+              Admin panel initialized. Waiting for events...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Global state management
+      let eventSource = null;
+      let isConnected = false;
+      let customerData = new Map();
+      let callDataStore = new Map(); // Secure storage for call data
+      let callStats = {
+        total: 0,
+        successful: 0,
+        failed: 0,
+        active: 0,
+        totalDuration: 0,
+      };
+      let reconnectAttempts = 0;
+      let reconnectionTimer = null;
+
+      // Configuration constants
+      const CONFIG = {
+        MAX_RECONNECT_ATTEMPTS: 5,
+        RECONNECT_BASE_DELAY: 3000,
+        MAX_RECONNECT_DELAY: 15000,
+        CONNECTION_CHECK_INTERVAL: 5000,
+        MAX_CUSTOMER_DATA_SIZE: 1000,
+        CLEANUP_BATCH_SIZE: 500,
+        ERROR_MESSAGE_TIMEOUT: 10000,
+      };
+
+      // Enhanced logging with levels
+      const LogLevel = {
+        INFO: "info",
+        WARN: "warn",
+        ERROR: "error",
+        SUCCESS: "success",
+      };
+
+      // Initialize the admin panel with comprehensive error handling
+      document.addEventListener("DOMContentLoaded", function () {
+        try {
+          log("🚀 Admin panel loading...", LogLevel.INFO);
+          initializeEventStream();
+          refreshStats();
+          setInterval(updateConnectionStatus, CONFIG.CONNECTION_CHECK_INTERVAL);
+
+          // Cleanup interval to prevent memory leaks
+          setInterval(cleanupData, 300000); // Every 5 minutes
+
+          log("✅ Admin panel initialized successfully", LogLevel.SUCCESS);
+        } catch (error) {
+          log(
+            `❌ Failed to initialize admin panel: ${error.message}`,
+            LogLevel.ERROR
+          );
+          showError(
+            "Failed to initialize admin panel. Please refresh the page."
+          );
+        }
+      });
+
+      // Enhanced event stream connection with comprehensive error handling
+      function initializeEventStream() {
+        // Clear existing connection and timer
+        if (eventSource) {
+          eventSource.close();
+          eventSource = null;
+        }
+
+        if (reconnectionTimer) {
+          clearTimeout(reconnectionTimer);
+          reconnectionTimer = null;
+        }
+
+        try {
+          // Check if EventSource is supported
+          if (typeof EventSource === "undefined") {
+            throw new Error("EventSource not supported by this browser");
+          }
+
+          log("🔄 Initializing event stream connection...", LogLevel.INFO);
+          eventSource = new EventSource("/events");
+
+          eventSource.onopen = function (event) {
+            isConnected = true;
+            reconnectAttempts = 0;
+            updateConnectionStatus();
+            log("✅ Connected to real-time event stream", LogLevel.SUCCESS);
+          };
+
+          eventSource.onmessage = function (event) {
+            try {
+              // Validate event data
+              if (!event || !event.data || typeof event.data !== "string") {
+                log("⚠️ Received invalid event data", LogLevel.WARN);
+                return;
+              }
+
+              const trimmedData = event.data.trim();
+              if (trimmedData === "") {
+                return; // Skip empty messages
+              }
+
+              // Safe JSON parsing
+              let data;
+              try {
+                data = JSON.parse(trimmedData);
+              } catch (parseError) {
+                log(
+                  `❌ Failed to parse event data: ${parseError.message}`,
+                  LogLevel.ERROR
+                );
+                return;
+              }
+
+              // Skip keepalive messages
+              if (data && data.keepalive) {
+                return;
+              }
+
+              // Validate required data structure
+              if (!data || typeof data !== "object") {
+                log("⚠️ Received malformed event data", LogLevel.WARN);
+                return;
+              }
+
+              log(
+                `📡 Received event: ${data.status || "unknown"} for ${
+                  data.phone_number || "unknown"
+                }`,
+                LogLevel.INFO
+              );
+              handleEventData(data);
+            } catch (error) {
+              log(
+                `❌ Error processing event: ${error.message}`,
+                LogLevel.ERROR
+              );
+              console.error(
+                "Event processing error:",
+                error,
+                "Raw data:",
+                event.data
+              );
+            }
+          };
+
+          eventSource.onerror = function (event) {
+            isConnected = false;
+            updateConnectionStatus();
+
+            if (reconnectAttempts < CONFIG.MAX_RECONNECT_ATTEMPTS) {
+              reconnectAttempts++;
+              const delay = Math.min(
+                CONFIG.RECONNECT_BASE_DELAY *
+                  Math.pow(2, reconnectAttempts - 1),
+                CONFIG.MAX_RECONNECT_DELAY
+              );
+
+              log(
+                `❌ Event stream connection lost. Reconnect attempt ${reconnectAttempts}/${
+                  CONFIG.MAX_RECONNECT_ATTEMPTS
+                } in ${delay / 1000}s...`,
+                LogLevel.WARN
+              );
+
+              reconnectionTimer = setTimeout(() => {
+                if (!isConnected) {
+                  initializeEventStream();
+                }
+              }, delay);
+            } else {
+              log(
+                "❌ Max reconnection attempts reached. Please refresh the page.",
+                LogLevel.ERROR
+              );
+              showError(
+                "Connection lost. Please refresh the page to reconnect."
+              );
+            }
+          };
+        } catch (error) {
+          log(
+            `❌ Failed to initialize event stream: ${error.message}`,
+            LogLevel.ERROR
+          );
+          showError(`Failed to initialize event stream: ${error.message}`);
+
+          // Retry after delay
+          setTimeout(() => {
+            if (!isConnected) {
+              initializeEventStream();
+            }
+          }, CONFIG.RECONNECT_BASE_DELAY);
+        }
+      }
+
+      // Enhanced error display with auto-cleanup
+      function showError(message) {
+        try {
+          const container = document.querySelector(".main-content");
+          if (!container) {
+            console.error("Main content container not found");
+            return;
+          }
+
+          // Remove existing error messages
+          const existingErrors = container.querySelectorAll(".error-message");
+          existingErrors.forEach((error) => error.remove());
+
+          const errorDiv = document.createElement("div");
+          errorDiv.className = "error-message";
+          errorDiv.textContent = escapeHtml(message);
+          container.insertBefore(errorDiv, container.firstChild);
+
+          // Auto-remove after timeout
+          setTimeout(() => {
+            if (errorDiv.parentNode) {
+              errorDiv.parentNode.removeChild(errorDiv);
+            }
+          }, CONFIG.ERROR_MESSAGE_TIMEOUT);
+        } catch (error) {
+          console.error("Failed to show error message:", error);
+        }
+      }
+
+      // Enhanced event data handling with validation
+      function handleEventData(data) {
+        if (!data || typeof data !== "object") {
+          log("⚠️ Invalid event data received", LogLevel.WARN);
+          return;
+        }
+
+        try {
+          // Validate essential fields
+          if (!data.phone_number || typeof data.phone_number !== "string") {
+            log(
+              "⚠️ Event data missing required phone_number field",
+              LogLevel.WARN
+            );
+            return;
+          }
+
+          updateTable(data);
+          updateRealTimeStats(data);
+
+          // Store customer data with size limit check
+          storeCustomerData(data.phone_number, data);
+        } catch (error) {
+          log(`❌ Error handling event data: ${error.message}`, LogLevel.ERROR);
+          console.error("Event handling error:", error, data);
+        }
+      }
+
+      // Secure customer data storage with cleanup
+      function storeCustomerData(phoneNumber, data) {
+        try {
+          const existingData = customerData.get(phoneNumber) || {};
+          customerData.set(phoneNumber, { ...existingData, ...data });
+
+          // Trigger cleanup if needed
+          if (customerData.size > CONFIG.MAX_CUSTOMER_DATA_SIZE) {
+            cleanupData();
+          }
+        } catch (error) {
+          log(
+            `❌ Error storing customer data: ${error.message}`,
+            LogLevel.ERROR
+          );
+        }
+      }
+
+      // Data cleanup to prevent memory leaks
+      function cleanupData() {
+        try {
+          if (customerData.size > CONFIG.MAX_CUSTOMER_DATA_SIZE) {
+            const entries = Array.from(customerData.entries());
+            const toDelete = entries.slice(0, CONFIG.CLEANUP_BATCH_SIZE);
+
+            toDelete.forEach(([key]) => customerData.delete(key));
+            log(
+              `🗑️ Cleaned up ${toDelete.length} old customer records`,
+              LogLevel.INFO
+            );
+          }
+
+          // Clean up call data store
+          if (callDataStore.size > CONFIG.MAX_CUSTOMER_DATA_SIZE) {
+            const entries = Array.from(callDataStore.entries());
+            const toDelete = entries.slice(0, CONFIG.CLEANUP_BATCH_SIZE);
+
+            toDelete.forEach(([key]) => callDataStore.delete(key));
+            log(
+              `🗑️ Cleaned up ${toDelete.length} old call data records`,
+              LogLevel.INFO
+            );
+          }
+        } catch (error) {
+          log(`❌ Error during data cleanup: ${error.message}`, LogLevel.ERROR);
+        }
+      }
+
+      // Enhanced table update with comprehensive error handling
+      function updateTable(data) {
+        const phoneNumber = data.phone_number;
+        if (!phoneNumber) {
+          log("⚠️ Warning: No phone number in event data", LogLevel.WARN);
+          return;
+        }
+
+        try {
+          const safePhoneId = generateSafeId(phoneNumber);
+          const tableBody = safeGetElement("customerTableBody");
+
+          if (!tableBody) {
+            log("❌ Customer table body not found", LogLevel.ERROR);
+            return;
+          }
+
+          // Remove empty state if present
+          const emptyState = tableBody.querySelector(".empty-state");
+          if (emptyState) {
+            emptyState.remove();
+          }
+
+          let row = document.querySelector(`#row-${safePhoneId}`);
+          const { statusClass, statusText } = getStatusInfo(data.status);
+
+          if (row) {
+            updateExistingRow(row, data, statusClass, statusText);
+          } else {
+            createNewRow(tableBody, safePhoneId, data, statusClass, statusText);
+            callStats.total++;
+          }
+
+          updateStatsDisplay();
+          log(
+            `${
+              row ? "📝 Updated" : "➕ Added"
+            } row for ${phoneNumber} with status: ${statusText}`,
+            LogLevel.INFO
+          );
+        } catch (error) {
+          log(`❌ Error updating table: ${error.message}`, LogLevel.ERROR);
+          console.error("Table update error:", error);
+        }
+      }
+
+      // Generate safe ID for DOM elements
+      function generateSafeId(phoneNumber) {
+        // Create a more robust ID generation
+        return (
+          "phone_" +
+          phoneNumber.replace(/[^a-zA-Z0-9]/g, "_") +
+          "_" +
+          Date.now().toString(36)
+        );
+      }
+
+      // Safe DOM element retrieval
+      function safeGetElement(elementId) {
+        const element = document.getElementById(elementId);
+        if (!element) {
+          log(`⚠️ Element with ID '${elementId}' not found`, LogLevel.WARN);
+        }
+        return element;
+      }
+
+      // Safe element content update
+      function safeUpdateElement(elementId, content, isHTML = false) {
+        const element = safeGetElement(elementId);
+        if (element) {
+          if (isHTML) {
+            element.innerHTML = content;
+          } else {
+            element.textContent = content;
+          }
+          return true;
+        }
+        return false;
+      }
+
+      // Enhanced status classification
+      function getStatusInfo(status) {
+        const statusMap = {
+          call_completed: { class: "status-connected", text: "COMPLETED" },
+          call_started: { class: "status-in-progress", text: "IN PROGRESS" },
+          call_failed: { class: "status-failed", text: "FAILED" },
+          user_interaction: {
+            class: "status-user-interaction",
+            text: "USER INTERACTION",
+          },
+          priority_interaction: {
+            class: "status-priority-interaction",
+            text: "PRIORITY ALERT",
+          },
+          call_queued: { class: "status-queued", text: "QUEUED" },
+          call_ringing: { class: "status-ringing", text: "RINGING" },
+          call_connected: { class: "status-connected", text: "CONNECTED" },
+        };
+
+        if (!status || typeof status !== "string") {
+          return { class: "status-unknown", text: "UNKNOWN" };
+        }
+
+        return (
+          statusMap[status.toLowerCase()] || {
+            class: "status-unknown",
+            text: status.replace(/_/g, " ").toUpperCase(),
+          }
+        );
+      }
+
+      // Update existing row with comprehensive error handling
+      function updateExistingRow(row, data, statusClass, statusText) {
+        try {
+          const statusCell = row.querySelector(".status");
+          if (statusCell) {
+            const statusContent = createStatusContent(
+              data,
+              statusClass,
+              statusText
+            );
+            statusCell.innerHTML = statusContent;
+            statusCell.className = `status ${statusClass}`;
+          }
+
+          // Update duration if available
+          const durationCell = row.querySelector(".duration");
+          if (durationCell && data.call_duration !== undefined) {
+            durationCell.textContent = formatDuration(data.call_duration);
+          }
+
+          // Update outcome if available
+          const outcomeCell = row.querySelector(".outcome");
+          if (outcomeCell && data.call_outcome) {
+            outcomeCell.textContent = formatOutcome(data.call_outcome);
+          }
+
+          // Update timestamp
+          const timestampCell = row.querySelector(".timestamp");
+          if (timestampCell && data.timestamp) {
+            timestampCell.innerHTML = createTimestampContent(data);
+          }
+        } catch (error) {
+          log(
+            `❌ Error updating existing row: ${error.message}`,
+            LogLevel.ERROR
+          );
+        }
+      }
+
+      // Create new row with enhanced security and error handling
+      function createNewRow(
+        tableBody,
+        safePhoneId,
+        data,
+        statusClass,
+        statusText
+      ) {
+        try {
+          const row = document.createElement("tr");
+          row.id = `row-${safePhoneId}`;
+
+          // Store call data securely
+          const dataKey = storeCallData(data);
+
+          const rowHTML = `
+            <td>
+                <strong>${escapeHtml(data.name || "Unknown")}</strong>
+                ${
+                  data.detected_intents
+                    ? createIntentBadges(data.detected_intents)
+                    : ""
+                }
+            </td>
+            <td>${escapeHtml(data.phone_number)}</td>
+            <td>${escapeHtml(data.email || "N/A")}</td>
+            <td class="query-cell">${escapeHtml(
+              truncateText(data.query || "N/A", 50)
+            )}</td>
+            <td class="timestamp">
+                ${createTimestampContent(data)}
+            </td>
+            <td class="status ${statusClass}">
+                ${createStatusContent(data, statusClass, statusText)}
+            </td>
+            <td class="duration">
+                ${
+                  data.call_duration !== undefined
+                    ? formatDuration(data.call_duration)
+                    : "N/A"
+                }
+            </td>
+            <td class="outcome">
+                ${data.call_outcome ? formatOutcome(data.call_outcome) : "N/A"}
+            </td>
+            <td>
+                <div class="action-buttons">
+                    ${createActionButtons(
+                      data.phone_number,
+                      dataKey,
+                      data.status
+                    )}
+                </div>
+            </td>
+        `;
+
+          row.innerHTML = rowHTML;
+          tableBody.appendChild(row);
+        } catch (error) {
+          log(`❌ Error creating new row: ${error.message}`, LogLevel.ERROR);
+        }
+      }
+
+      // Secure call data storage
+      function storeCallData(data) {
+        const key = `call_${Date.now()}_${Math.random()
+          .toString(36)
+          .substr(2, 9)}`;
+        callDataStore.set(key, { ...data, timestamp: Date.now() });
+        return key;
+      }
+
+      // Create timestamp content
+      function createTimestampContent(data) {
+        const timestamp = formatTimestamp(data.timestamp);
+        const sessionInfo = data.session_id
+          ? `<div class="call-details">Session: ${escapeHtml(
+              data.session_id.substring(0, 8)
+            )}...</div>`
+          : "";
+
+        return `${timestamp}${sessionInfo}`;
+      }
+
+      // Create status content with enhanced information
+      function createStatusContent(data, statusClass, statusText) {
+        let content = statusText;
+
+        if (data.error_message) {
+          content += `<div class="call-details error-details">Error: ${escapeHtml(
+            data.error_message
+          )}</div>`;
+        }
+
+        if (data.priority_level) {
+          const priorityLevel = String(data.priority_level).toUpperCase();
+          content += `<div class="call-details priority-details">Priority: ${escapeHtml(
+            priorityLevel
+          )}</div>`;
+        }
+
+        if (data.call_progress && data.status === "call_in_progress") {
+          content += `<div class="call-details progress-details">${escapeHtml(
+            data.call_progress
+          )}</div>`;
+        }
+
+        return content;
+      }
+
+      // Create secure action buttons
+      function createActionButtons(phoneNumber, dataKey, status) {
+        const buttons = [];
+        const safePhoneNumber = escapeHtml(phoneNumber);
+
+        if (status === "call_failed") {
+          buttons.push(
+            `<button class="btn-retry" onclick="retryCall('${safePhoneNumber}', '${dataKey}')">Retry</button>`
+          );
+        }
+
+        buttons.push(
+          `<button class="btn-view" onclick="viewDetails('${safePhoneNumber}', '${dataKey}')">View</button>`
+        );
+        buttons.push(
+          `<button class="btn-export" onclick="exportSingle('${safePhoneNumber}', '${dataKey}')">Export</button>`
+        );
+
+        return buttons.join("");
+      }
+
+      // Create intent badges with enhanced security
+      function createIntentBadges(intents) {
+        if (!Array.isArray(intents) || intents.length === 0) {
+          return "";
+        }
+
+        try {
+          const badges = intents
+            .map((intent) => {
+              if (!intent) return "";
+
+              const intentText =
+                typeof intent === "object"
+                  ? intent.intent || "Unknown"
+                  : String(intent);
+              const priorityClass =
+                typeof intent === "object" && intent.priority_level === "high"
+                  ? "priority-badge"
+                  : "";
+
+              return `<span class="intent-badge ${priorityClass}">${escapeHtml(
+                intentText
+              )}</span>`;
+            })
+            .filter((badge) => badge !== "")
+            .join("");
+
+          return badges ? `<div class="intent-badges">${badges}</div>` : "";
+        } catch (error) {
+          log(
+            `❌ Error creating intent badges: ${error.message}`,
+            LogLevel.ERROR
+          );
+          return "";
+        }
+      }
+
+      // Enhanced real-time stats update with better state management
+      function updateRealTimeStats(data) {
+        try {
+          const status = data.status;
+          const duration = data.call_duration;
+
+          switch (status) {
+            case "call_completed":
+              callStats.successful++;
+              if (duration && !isNaN(duration) && duration > 0) {
+                callStats.totalDuration += Number(duration);
+              }
+              callStats.active = Math.max(0, callStats.active - 1);
+              break;
+
+            case "call_started":
+            case "call_connected":
+              callStats.active++;
+              break;
+
+            case "call_failed":
+              callStats.failed++;
+              callStats.active = Math.max(0, callStats.active - 1);
+              break;
+
+            case "call_queued":
+              // Don't count queued calls as active yet
+              break;
+          }
+        } catch (error) {
+          log(
+            `❌ Error updating real-time stats: ${error.message}`,
+            LogLevel.ERROR
+          );
+        }
+      }
+
+      // Enhanced stats display with error handling
+      function updateStatsDisplay() {
+        try {
+          safeUpdateElement("totalCalls", callStats.total || 0);
+          safeUpdateElement("successfulCalls", callStats.successful || 0);
+          safeUpdateElement("failedCalls", callStats.failed || 0);
+          safeUpdateElement("activeConnections", callStats.active || 0);
+
+          const avgDuration =
+            callStats.successful > 0
+              ? Math.round(callStats.totalDuration / callStats.successful)
+              : 0;
+          safeUpdateElement("avgDuration", formatDuration(avgDuration));
+
+          // Update success rate
+          const successRate =
+            callStats.total > 0
+              ? Math.round((callStats.successful / callStats.total) * 100)
+              : 0;
+          safeUpdateElement("successRate", `${successRate}%`);
+        } catch (error) {
+          log(
+            `❌ Error updating stats display: ${error.message}`,
+            LogLevel.ERROR
+          );
+        }
+      }
+
+      // Enhanced utility functions with better error handling
+
+      function formatTimestamp(timestamp) {
+        try {
+          if (!timestamp) return "N/A";
+          const date = new Date(timestamp);
+          if (isNaN(date.getTime())) return "Invalid Date";
+          return date.toLocaleString();
+        } catch (error) {
+          return "Invalid Date";
+        }
+      }
+
+      function formatDuration(seconds) {
+        try {
+          if (seconds === undefined || seconds === null || isNaN(seconds)) {
+            return "N/A";
+          }
+          const num = Number(seconds);
+          if (num < 60) {
+            return `${Math.round(num)}s`;
+          } else if (num < 3600) {
+            const minutes = Math.floor(num / 60);
+            const remainingSeconds = Math.round(num % 60);
+            return `${minutes}m ${remainingSeconds}s`;
+          } else {
+            const hours = Math.floor(num / 3600);
+            const minutes = Math.floor((num % 3600) / 60);
+            return `${hours}h ${minutes}m`;
+          }
+        } catch (error) {
+          return "N/A";
+        }
+      }
+
+      function formatOutcome(outcome) {
+        if (!outcome) return "N/A";
+        try {
+          return String(outcome).replace(/_/g, " ").toUpperCase();
+        } catch (error) {
+          return "N/A";
+        }
+      }
+
+      function truncateText(text, maxLength) {
+        if (!text || typeof text !== "string") return "";
+        return text.length > maxLength
+          ? text.substring(0, maxLength) + "..."
+          : text;
+      }
+
+      // Enhanced HTML escaping function
+      function escapeHtml(str) {
+        if (str === null || str === undefined) return "";
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#x27;")
+          .replace(/\//g, "&#x2F;");
+      }
+
+      // Enhanced logging with levels and sanitization
+      function log(message, level = LogLevel.INFO) {
+        try {
+          const container = safeGetElement("logContainer");
+          if (!container) return;
+
+          const entry = document.createElement("div");
+          entry.className = `log-entry log-${level}`;
+
+          const timestamp = new Date().toLocaleTimeString();
+          const safeMessage = escapeHtml(message);
+
+          entry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> <span class="log-message">${safeMessage}</span>`;
+
+          container.insertBefore(entry, container.firstChild);
+
+          // Limit log entries to prevent memory issues
+          const maxEntries = 100;
+          while (container.children.length > maxEntries) {
+            container.removeChild(container.lastChild);
+          }
+        } catch (error) {
+          console.error("Failed to add log entry:", error);
+        }
+      }
+
+      // Enhanced connection status update
+      function updateConnectionStatus() {
+        try {
+          const indicator = safeGetElement("connectionIndicator");
+          const status = safeGetElement("connectionStatus");
+
+          if (indicator) {
+            indicator.className = `connection-indicator${
+              isConnected ? " connected" : " disconnected"
+            }`;
+          }
+
+          if (status) {
+            const statusText = isConnected
+              ? "Connected to event stream"
+              : `Disconnected${
+                  reconnectAttempts > 0
+                    ? ` (Attempt ${reconnectAttempts}/${CONFIG.MAX_RECONNECT_ATTEMPTS})`
+                    : ""
+                }`;
+            status.textContent = statusText;
+          }
+        } catch (error) {
+          log(
+            `❌ Error updating connection status: ${error.message}`,
+            LogLevel.ERROR
+          );
+        }
+      }
+
+      // Enhanced action functions with proper data handling
+
+      function refreshStats() {
+        try {
+          log("🔄 Refreshing statistics...", LogLevel.INFO);
+          updateStatsDisplay();
+          log("✅ Statistics refreshed", LogLevel.SUCCESS);
+        } catch (error) {
+          log(`❌ Error refreshing stats: ${error.message}`, LogLevel.ERROR);
+        }
+      }
+
+      function exportData() {
+        try {
+          log("📥 Preparing data export...", LogLevel.INFO);
+          const data = {
+            stats: callStats,
+            customers: Array.from(customerData.entries()),
+            timestamp: new Date().toISOString(),
+          };
+
+          const blob = new Blob([JSON.stringify(data, null, 2)], {
+            type: "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `admin_data_${
+            new Date().toISOString().split("T")[0]
+          }.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+
+          log("✅ Data exported successfully", LogLevel.SUCCESS);
+        } catch (error) {
+          log(`❌ Error exporting data: ${error.message}`, LogLevel.ERROR);
+        }
+      }
+
+      function viewAnalytics() {
+        log("📈 Opening analytics view...", LogLevel.INFO);
+        // Analytics implementation would go here
+      }
+
+      function testWebhook() {
+        log("🧪 Testing webhook connection...", LogLevel.INFO);
+        // Webhook test implementation would go here
+      }
+
+      function clearLogs() {
+        try {
+          const container = safeGetElement("logContainer");
+          if (container) {
+            container.innerHTML = "";
+          }
+          log("🗑️ Logs cleared", LogLevel.INFO);
+        } catch (error) {
+          console.error("Error clearing logs:", error);
+        }
+      }
+
+      function checkHealth() {
+        try {
+          log("🏥 Running health check...", LogLevel.INFO);
+
+          const checks = {
+            eventSource: eventSource !== null,
+            connected: isConnected,
+            dataStoreSize: customerData.size,
+            callDataSize: callDataStore.size,
+          };
+
+          log(`Health Status: ${JSON.stringify(checks)}`, LogLevel.INFO);
+        } catch (error) {
+          log(`❌ Error during health check: ${error.message}`, LogLevel.ERROR);
+        }
+      }
+
+      function testDirectQueue() {
+        log("📤 Testing direct queue...", LogLevel.INFO);
+        // Direct queue test implementation would go here
+      }
+
+      function simulateCall() {
+        try {
+          log("📞 Simulating test call...", LogLevel.INFO);
+
+          const testData = {
+            phone_number: "+1-555-TEST-001",
+            name: "Test Customer",
+            email: "test@example.com",
+            query: "Test simulation call",
+            status: "call_started",
+            timestamp: new Date().toISOString(),
+            session_id: "sim_" + Math.random().toString(36).substr(2, 9),
+          };
+
+          handleEventData(testData);
+          log("✅ Test call simulated", LogLevel.SUCCESS);
+        } catch (error) {
+          log(`❌ Error simulating call: ${error.message}`, LogLevel.ERROR);
+        }
+      }
+
+      function viewLogs() {
+        log("📋 Opening system logs view...", LogLevel.INFO);
+        // System logs view implementation would go here
+      }
+
+      // Enhanced action functions with secure data access
+
+      function retryCall(phoneNumber, dataKey) {
+        try {
+          const callData = callDataStore.get(dataKey);
+          if (!callData) {
+            log(
+              `❌ Call data not found for retry: ${phoneNumber}`,
+              LogLevel.ERROR
+            );
+            return;
+          }
+
+          log(`🔄 Retrying call for ${phoneNumber}...`, LogLevel.INFO);
+          // Retry implementation would go here
+          // Example: Make API call to retry the call
+        } catch (error) {
+          log(`❌ Error retrying call: ${error.message}`, LogLevel.ERROR);
+        }
+      }
+
+      function viewDetails(phoneNumber, dataKey) {
+        try {
+          const callData = callDataStore.get(dataKey);
+          const customerInfo = customerData.get(phoneNumber);
+
+          if (!callData && !customerInfo) {
+            log(`❌ No data found for ${phoneNumber}`, LogLevel.ERROR);
+            return;
+          }
+
+          log(`🔍 Viewing details for ${phoneNumber}...`, LogLevel.INFO);
+
+          // Create modal or detailed view
+          const details = {
+            call: callData,
+            customer: customerInfo,
+          };
+
+          console.log("Customer Details:", details);
+          // Modal implementation would go here
+        } catch (error) {
+          log(`❌ Error viewing details: ${error.message}`, LogLevel.ERROR);
+        }
+      }
+
+      function exportSingle(phoneNumber, dataKey) {
+        try {
+          const callData = callDataStore.get(dataKey);
+          const customerInfo = customerData.get(phoneNumber);
+
+          const exportData = {
+            phone_number: phoneNumber,
+            call_data: callData,
+            customer_data: customerInfo,
+            export_timestamp: new Date().toISOString(),
+          };
+
+          const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+            type: "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `customer_${phoneNumber.replace(
+            /[^a-zA-Z0-9]/g,
+            "_"
+          )}_${Date.now()}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+
+          log(`📥 Data exported for ${phoneNumber}`, LogLevel.SUCCESS);
+        } catch (error) {
+          log(
+            `❌ Error exporting single record: ${error.message}`,
+            LogLevel.ERROR
+          );
+        }
+      }
+
+      // Cleanup on page unload
+      window.addEventListener("beforeunload", function () {
+        try {
+          if (eventSource) {
+            eventSource.close();
+          }
+          if (reconnectionTimer) {
+            clearTimeout(reconnectionTimer);
+          }
+        } catch (error) {
+          console.error("Error during cleanup:", error);
+        }
+      });
+
+      const evtSource = new EventSource("/events");
+
+      evtSource.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+
+        // Update UI based on event type
+        switch (data.status) {
+          case "call_started":
+            updateCallStatus(data.phone_number, "Started", data);
+            break;
+          case "call_completed":
+            updateCallStatus(data.phone_number, "Completed", data);
+            showTranscript(data.transcript);
+            break;
+          case "call_failed":
+            updateCallStatus(data.phone_number, "Failed", data);
+            showError(data.error_message);
+            break;
+          case "user_interaction":
+            updateInteraction(data);
+            break;
+        }
+      };
+
+      function updateCallStatus(phone, status, data) {
+        const statusElement = document.querySelector(`[data-phone="${phone}"]`);
+        if (statusElement) {
+          statusElement.textContent = status;
+          statusElement.className = `status status-${status.toLowerCase()}`;
+        } else {
+          // Add new call to the list
+          addNewCall(data);
+        }
+      }
+
+      function addNewCall(data) {
+        const callsList = document.getElementById("calls-list");
+        const callElement = document.createElement("div");
+        callElement.className = "call-item";
+        callElement.innerHTML = `
+        <span class="caller-name">${data.name}</span>
+        <span class="caller-phone">${data.phone_number}</span>
+        <span class="status status-${data.status}" data-phone="${
+          data.phone_number
+        }">
+            ${data.status}
+        </span>
+        <span class="timestamp">${new Date(
+          data.timestamp
+        ).toLocaleTimeString()}</span>
+    `;
+        callsList.insertBefore(callElement, callsList.firstChild);
+      }
+
+      function showTranscript(transcript) {
+        if (transcript && transcript.length > 0) {
+          const transcriptArea = document.getElementById("transcript-area");
+          if (transcriptArea) {
+            transcriptArea.innerHTML = transcript
+              .map((t) => `<p><strong>${t.speaker}:</strong> ${t.text}</p>`)
+              .join("");
+          }
+        }
+      }
+
+      function showError(error) {
+        const errorArea = document.getElementById("error-area");
+        if (errorArea && error) {
+          errorArea.innerHTML = `<div class="error-message">${error}</div>`;
+        }
+      }
+    </script>
+  </body>
+</html>
