@@ -225,182 +225,202 @@ class WebhookEventProcessor:
         """Handle call answered event"""
         return self._update_call_status(event, 'answered')
 
-def _handle_call_completed(self, event: WebhookEvent) -> bool:
-    """Handle call completed event"""
-    try:
-        with db_manager.get_db_session() as db:
-            call_log = db.query(CallLog).filter(CallLog.call_id == event.call_id).first()
-            if not call_log:
-                logger.warning(f"Call log not found for completed event: {event.call_id}")
-                return False
+    def _handle_call_completed(self, event: WebhookEvent) -> bool:
+        """Handle call completed event"""
+        try:
+            with db_manager.get_db_session() as db:
+                # Update call log
+                call = db.query(CallLog).filter(CallLog.call_id == event.call_id).first()
+                if call:
+                    call.status = "completed"
+                    call.duration_seconds = event.data.get('duration_seconds', 0)
+                    call.completed_at = datetime.utcnow()
+                    
+                    # Add additional data if available
+                    if 'customer_satisfaction' in event.data:
+                        call.customer_satisfaction = event.data['customer_satisfaction']
+                    if 'conversation_transcript' in event.data:
+                        call.transcript = json.dumps(event.data['conversation_transcript'])
+                    if 'detected_intents' in event.data:
+                        call.detected_intents = json.dumps(event.data['detected_intents'])
+                    
+                    # Create call event
+                    event_data = {
+                        'duration_seconds': event.data.get('duration_seconds', 0),
+                        'customer_satisfaction': event.data.get('customer_satisfaction'),
+                        'has_transcript': bool(event.data.get('conversation_transcript')),
+                    }
+                    
+                    call_event = CallEvent(
+                        call_id=event.call_id,
+                        event_type='call_completed',
+                        event_data=json.dumps(event_data),
+                        created_at=datetime.utcnow()
+                    )
+                    db.add(call_event)
+                    
+                    # Update metrics
+                    metrics_collector.record_call_completed(
+                        duration=event.data.get('duration_seconds', 0),
+                        satisfaction=event.data.get('customer_satisfaction')
+                    )
+                    
+                    db.commit()
+                    logger.info(f"Call completed successfully: {event.call_id}")
+                    return True
+                else:
+                    logger.error(f"Call not found for completed event: {event.call_id}")
+                    return False
+                    
+        except Exception as e:
+            logger.error(f"Error handling call completed event: {e}")
+            return False
 
-            call_log.status = 'completed'
-            call_log.call_ended_at = event.timestamp
-            call_log.updated_at = datetime.utcnow()
-            call_log.duration = (
-                (event.timestamp - call_log.call_started_at).total_seconds()
-                if call_log.call_started_at else None
-            )
+    def _handle_call_failed(self, event: WebhookEvent) -> bool:
+        """Handle call failed event"""
+        return self._update_call_status(event, 'failed', error_details=event.data.get('error'))
 
-            call_event = CallEvent(
-                call_log_id=call_log.id,
-                event_type=event.event_type,
-                event_data=event.data
-            )
-            db.add(call_event)
-            db.commit()
+    def _handle_call_cancelled(self, event: WebhookEvent) -> bool:
+        """Handle call cancelled event"""
+        return self._update_call_status(event, 'cancelled')
 
-            metrics_collector.record_call_duration(call_log.duration)
-            return True
-    except Exception as e:
-        logger.error(f"Error handling call completed: {e}")
-        return False
+    def _handle_call_no_answer(self, event: WebhookEvent) -> bool:
+        """Handle call no answer event"""
+        return self._update_call_status(event, 'no_answer')
 
-def _handle_call_failed(self, event: WebhookEvent) -> bool:
-    """Handle call failed event"""
-    return self._update_call_status(event, 'failed', error_details=event.data.get('error'))
+    def _handle_call_busy(self, event: WebhookEvent) -> bool:
+        """Handle call busy event"""
+        return self._update_call_status(event, 'busy')
 
-def _handle_call_cancelled(self, event: WebhookEvent) -> bool:
-    """Handle call cancelled event"""
-    return self._update_call_status(event, 'cancelled')
+    def _handle_recording_ready(self, event: WebhookEvent) -> bool:
+        """Handle recording ready event"""
+        try:
+            with db_manager.get_db_session() as db:
+                call_log = db.query(CallLog).filter(CallLog.call_id == event.call_id).first()
+                if call_log:
+                    call_log.recording_url = event.data.get('recording_url')
+                    call_log.recording_duration = event.data.get('duration')
+                    call_log.updated_at = datetime.utcnow()
 
-def _handle_call_no_answer(self, event: WebhookEvent) -> bool:
-    """Handle call no answer event"""
-    return self._update_call_status(event, 'no_answer')
+                    call_event = CallEvent(
+                        call_log_id=call_log.id,
+                        event_type=event.event_type,
+                        event_data=event.data
+                    )
+                    db.add(call_event)
+                    db.commit()
+                    return True
+            return False
+        except Exception as e:
+            logger.error(f"Error handling recording ready: {e}")
+            return False
 
-def _handle_call_busy(self, event: WebhookEvent) -> bool:
-    """Handle call busy event"""
-    return self._update_call_status(event, 'busy')
+    def _handle_transcript_ready(self, event: WebhookEvent) -> bool:
+        """Handle transcript ready event"""
+        try:
+            with db_manager.get_db_session() as db:
+                call_log = db.query(CallLog).filter(CallLog.call_id == event.call_id).first()
+                if call_log:
+                    call_log.transcript_url = event.data.get('transcript_url')
+                    call_log.updated_at = datetime.utcnow()
 
-def _handle_recording_ready(self, event: WebhookEvent) -> bool:
-    """Handle recording ready event"""
-    try:
-        with db_manager.get_db_session() as db:
-            call_log = db.query(CallLog).filter(CallLog.call_id == event.call_id).first()
-            if call_log:
-                call_log.recording_url = event.data.get('recording_url')
-                call_log.recording_duration = event.data.get('duration')
-                call_log.updated_at = datetime.utcnow()
+                    call_event = CallEvent(
+                        call_log_id=call_log.id,
+                        event_type=event.event_type,
+                        event_data=event.data
+                    )
+                    db.add(call_event)
+                    db.commit()
+                    return True
+            return False
+        except Exception as e:
+            logger.error(f"Error handling transcript ready: {e}")
+            return False
 
+    def _handle_participant_joined(self, event: WebhookEvent) -> bool:
+        """Handle participant joined event"""
+        return self._log_participant_event(event)
+
+    def _handle_participant_left(self, event: WebhookEvent) -> bool:
+        """Handle participant left event"""
+        return self._log_participant_event(event)
+
+    def _handle_error_occurred(self, event: WebhookEvent) -> bool:
+        """Handle error event"""
+        try:
+            with db_manager.get_db_session() as db:
+                call_log = db.query(CallLog).filter(CallLog.call_id == event.call_id).first()
+                if call_log:
+                    call_log.error_details = event.data.get('error')
+                    call_log.updated_at = datetime.utcnow()
+
+                    call_event = CallEvent(
+                        call_log_id=call_log.id,
+                        event_type=event.event_type,
+                        event_data=event.data
+                    )
+                    db.add(call_event)
+                    db.commit()
+
+                    metrics_collector.record_error(event.data.get('error'))
+                    return True
+            return False
+        except Exception as e:
+            logger.error(f"Error handling error event: {e}")
+            return False
+
+    def _handle_unknown_event(self, event: WebhookEvent) -> bool:
+        """Handle unknown event types"""
+        try:
+            with db_manager.get_db_session() as db:
                 call_event = CallEvent(
-                    call_log_id=call_log.id,
+                    call_id=event.call_id,
                     event_type=event.event_type,
                     event_data=event.data
                 )
                 db.add(call_event)
                 db.commit()
                 return True
-        return False
-    except Exception as e:
-        logger.error(f"Error handling recording ready: {e}")
-        return False
+        except Exception as e:
+            logger.error(f"Error handling unknown event: {e}")
+            return False
 
-def _handle_transcript_ready(self, event: WebhookEvent) -> bool:
-    """Handle transcript ready event"""
-    try:
-        with db_manager.get_db_session() as db:
-            call_log = db.query(CallLog).filter(CallLog.call_id == event.call_id).first()
-            if call_log:
-                call_log.transcript_url = event.data.get('transcript_url')
-                call_log.updated_at = datetime.utcnow()
+    def _update_call_status(self, event: WebhookEvent, status: str, error_details: str = None) -> bool:
+        """Update call status and log event"""
+        try:
+            with db_manager.get_db_session() as db:
+                call_log = db.query(CallLog).filter(CallLog.call_id == event.call_id).first()
+                if call_log:
+                    call_log.status = status
+                    call_log.updated_at = datetime.utcnow()
+                    if error_details:
+                        call_log.error_details = error_details
 
+                    call_event = CallEvent(
+                        call_log_id=call_log.id,
+                        event_type=event.event_type,
+                        event_data=event.data
+                    )
+                    db.add(call_event)
+                    db.commit()
+                    return True
+            return False
+        except Exception as e:
+            logger.error(f"Error updating call status: {e}")
+            return False
+
+    def _log_participant_event(self, event: WebhookEvent) -> bool:
+        """Log participant related events"""
+        try:
+            with db_manager.get_db_session() as db:
                 call_event = CallEvent(
-                    call_log_id=call_log.id,
+                    call_id=event.call_id,
                     event_type=event.event_type,
                     event_data=event.data
                 )
                 db.add(call_event)
                 db.commit()
                 return True
-        return False
-    except Exception as e:
-        logger.error(f"Error handling transcript ready: {e}")
-        return False
-
-def _handle_participant_joined(self, event: WebhookEvent) -> bool:
-    """Handle participant joined event"""
-    return self._log_participant_event(event)
-
-def _handle_participant_left(self, event: WebhookEvent) -> bool:
-    """Handle participant left event"""
-    return self._log_participant_event(event)
-
-def _handle_error_occurred(self, event: WebhookEvent) -> bool:
-    """Handle error event"""
-    try:
-        with db_manager.get_db_session() as db:
-            call_log = db.query(CallLog).filter(CallLog.call_id == event.call_id).first()
-            if call_log:
-                call_log.error_details = event.data.get('error')
-                call_log.updated_at = datetime.utcnow()
-
-                call_event = CallEvent(
-                    call_log_id=call_log.id,
-                    event_type=event.event_type,
-                    event_data=event.data
-                )
-                db.add(call_event)
-                db.commit()
-
-                metrics_collector.record_error(event.data.get('error'))
-                return True
-        return False
-    except Exception as e:
-        logger.error(f"Error handling error event: {e}")
-        return False
-
-def _handle_unknown_event(self, event: WebhookEvent) -> bool:
-    """Handle unknown event types"""
-    try:
-        with db_manager.get_db_session() as db:
-            call_event = CallEvent(
-                call_id=event.call_id,
-                event_type=event.event_type,
-                event_data=event.data
-            )
-            db.add(call_event)
-            db.commit()
-            return True
-    except Exception as e:
-        logger.error(f"Error handling unknown event: {e}")
-        return False
-
-def _update_call_status(self, event: WebhookEvent, status: str, error_details: str = None) -> bool:
-    """Update call status and log event"""
-    try:
-        with db_manager.get_db_session() as db:
-            call_log = db.query(CallLog).filter(CallLog.call_id == event.call_id).first()
-            if call_log:
-                call_log.status = status
-                call_log.updated_at = datetime.utcnow()
-                if error_details:
-                    call_log.error_details = error_details
-
-                call_event = CallEvent(
-                    call_log_id=call_log.id,
-                    event_type=event.event_type,
-                    event_data=event.data
-                )
-                db.add(call_event)
-                db.commit()
-                return True
-        return False
-    except Exception as e:
-        logger.error(f"Error updating call status: {e}")
-        return False
-
-def _log_participant_event(self, event: WebhookEvent) -> bool:
-    """Log participant related events"""
-    try:
-        with db_manager.get_db_session() as db:
-            call_event = CallEvent(
-                call_id=event.call_id,
-                event_type=event.event_type,
-                event_data=event.data
-            )
-            db.add(call_event)
-            db.commit()
-            return True
-    except Exception as e:
-        logger.error(f"Error logging participant event: {e}")
-        return False
+        except Exception as e:
+            logger.error(f"Error logging participant event: {e}")
+            return False

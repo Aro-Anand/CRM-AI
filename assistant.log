@@ -78,3 +78,42 @@ TimeoutError
 2025-06-09 20:35:35,108 - livekit.agents - INFO - shutting down worker
 2025-06-09 20:35:35,154 - livekit.agents - INFO - process exiting
 2025-06-09 20:35:35,712 - livekit.agents - WARNING - exiting forcefully
+2025-06-09 21:03:20,701 - call_assistant - INFO - Starting SheraAI Assistant Agent
+2025-06-09 21:03:20,702 - call_assistant - INFO -  Webhook URL configured: http://localhost:8080/webhook
+2025-06-09 21:03:20,707 - livekit.agents - INFO - starting worker
+2025-06-09 21:03:20,707 - livekit.agents - INFO - starting inference executor
+2025-06-09 21:03:20,742 - livekit.agents - INFO - initializing process
+2025-06-09 21:03:23,370 - livekit.agents - DEBUG - initializing inference runner
+2025-06-09 21:03:27,413 - livekit.agents - DEBUG - inference runner initialized
+2025-06-09 21:03:27,413 - livekit.agents - INFO - process initialized
+2025-06-09 21:03:27,413 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-06-09 21:03:27,505 - livekit.agents - INFO - initializing job runner
+2025-06-09 21:03:27,506 - livekit.agents - INFO - initializing job runner
+2025-06-09 21:03:27,506 - livekit.agents - INFO - initializing job runner
+2025-06-09 21:03:27,506 - livekit.agents - INFO - initializing job runner
+2025-06-09 21:03:27,507 - livekit.agents - INFO - initializing job runner
+2025-06-09 21:03:27,507 - livekit.agents - INFO - initializing job runner
+2025-06-09 21:03:27,508 - livekit.agents - INFO - initializing job runner
+2025-06-09 21:03:27,508 - livekit.agents - INFO - initializing job runner
+2025-06-09 21:03:27,508 - livekit.agents - INFO - initializing job runner
+2025-06-09 21:03:27,509 - livekit.agents - INFO - initializing job runner
+2025-06-09 21:03:27,511 - livekit.agents - INFO - initializing job runner
+2025-06-09 21:03:27,513 - livekit.agents - INFO - initializing job runner
+2025-06-09 21:03:27,527 - livekit.agents - INFO - job runner initialized
+2025-06-09 21:03:27,528 - livekit.agents - INFO - job runner initialized
+2025-06-09 21:03:27,528 - livekit.agents - INFO - job runner initialized
+2025-06-09 21:03:27,529 - livekit.agents - INFO - job runner initialized
+2025-06-09 21:03:27,530 - livekit.agents - INFO - job runner initialized
+2025-06-09 21:03:27,530 - livekit.agents - INFO - job runner initialized
+2025-06-09 21:03:27,531 - livekit.agents - INFO - job runner initialized
+2025-06-09 21:03:27,531 - livekit.agents - INFO - job runner initialized
+2025-06-09 21:03:27,532 - livekit.agents - INFO - job runner initialized
+2025-06-09 21:03:27,533 - livekit.agents - INFO - job runner initialized
+2025-06-09 21:03:27,534 - livekit.agents - INFO - job runner initialized
+2025-06-09 21:03:27,535 - livekit.agents - INFO - job runner initialized
+2025-06-09 21:03:27,537 - livekit.agents - INFO - see tracing information at http://localhost:8081/debug
+2025-06-09 21:03:27,772 - livekit.agents - INFO - registered worker
+2025-06-09 21:09:52,137 - livekit.agents - INFO - draining worker
+2025-06-09 21:09:52,137 - livekit.agents - INFO - shutting down worker
+2025-06-09 21:09:52,143 - livekit.agents - INFO - process exiting
+2025-06-09 21:09:52,528 - livekit.agents - WARNING - exiting forcefully

@@ -15,7 +15,7 @@ crm_bp = Blueprint('crm', __name__, url_prefix='/crm')
 @crm_bp.route('/')
 def dashboard():
     """Main CRM dashboard"""
-    return render_template('crm_ui/dashboard.html')
+    return render_template('crm/dashboard.html')
 
 @crm_bp.route('/api/dashboard-stats')
 @require_api_key

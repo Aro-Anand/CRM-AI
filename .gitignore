@@ -1,0 +1,7 @@
+.env
+aitest
+__pycache__
+logs
+admin.html
+assistant.log
+refer.txt

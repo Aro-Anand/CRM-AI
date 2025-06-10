@@ -6,6 +6,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from webhooks.events import WebhookEventProcessor, EventType
 from dotenv import load_dotenv
 from crm_ui.routes import crm_bp
+import jinja2
 import os
 import asyncio
 import random
@@ -36,12 +37,24 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 app = Flask(__name__, 
-    template_folder=['templates', 'crm_ui/templates'],
-    static_folder='crm_ui/static'
+    template_folder='templates',  # Main template folder
+    static_folder='static'  # Main static folder
 )
+
+# Add additional template folder
+app.jinja_loader = jinja2.ChoiceLoader([
+    app.jinja_loader,
+    jinja2.FileSystemLoader('crm_ui/templates')
+])
+
 CORS(app)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
-app.register_blueprint(crm_bp)
+
+# Register CRM blueprint with its own static folder
+app.register_blueprint(crm_bp, url_prefix='/crm', 
+    static_folder='crm_ui/static',  # CRM UI static folder
+    static_url_path='static'  # This will be prefixed with /crm to become /crm/static
+)
 
 # In-memory log storage for recent logs
 from collections import deque
@@ -89,30 +102,6 @@ def index():
 @app.route('/admin')
 def admin_panel():
     return redirect(url_for("crm.dashboard"))
-
-@app.route('/admin/calls')
-def admin_calls():
-    db = next(get_database())
-    try:
-        calls = db.query(CallLog).order_by(CallLog.created_at.desc()).all()
-        return render_template(
-            "crm_ui/dashboard.html",
-            calls=calls
-        )
-    finally:
-        db.close()
-
-@app.route('/admin/customers')
-def admin_customers():
-    db = next(get_database())
-    try:
-        customers = db.query(Customer).order_by(Customer.created_at.desc()).all()
-        return render_template(
-            "crm/customers.html",
-            customers=customers
-        )
-    finally:
-        db.close()
 
 
 @app.route('/submit', methods=['POST'])
@@ -577,45 +566,22 @@ def send_ui_update(event_type: str, data: dict):
 
 # Add after app initialization but before routes
 # Initialize database
-db = init_database()
+# Initialize database
+from database.connection import DatabaseManager
+db_manager = DatabaseManager()
+db_manager.initialize()
 
 # Add this function to get database session
 def get_database():
     """Get database session"""
-    try:
-        db = get_db()
+    with db_manager.get_db_session() as db:
         yield db
-    finally:
-        db.close()
 
-@app.route('/admin/calls')
-def admin_calls():
-    db = next(get_database())
-    try:
-        calls = db.query(CallLog).order_by(CallLog.created_at.desc()).all()
-        return render_template(
-            "admin/calls.html",
-            calls=calls
-        )
-    finally:
-        db.close()
-
-@app.route('/admin/customers')
-def admin_customers():
-    db = next(get_database())
-    try:
-        customers = db.query(Customer).order_by(Customer.created_at.desc()).all()
-        return render_template(
-            "admin/customers.html",
-            customers=customers
-        )
-    finally:
-        db.close()
+# Admin routes moved to crm_ui blueprint
 
 @app.route('/api/calls')
 def api_calls():
-    db = next(get_database())
-    try:
+    with db_manager.get_db_session() as db:
         calls = db.query(CallLog).order_by(CallLog.created_at.desc()).limit(100).all()
         return jsonify([{
             'id': call.id,
@@ -630,30 +596,41 @@ def api_calls():
             'query': call.query,
             'email': call.email
         } for call in calls])
-    finally:
-        db.close()
 
 @app.route('/api/dashboard-stats')
 def dashboard_stats():
     """Get dashboard statistics"""
     try:
-        db = next(get_database())
-        stats = {
-            'total_calls': db.query(CallLog).count(),
-            'total_customers': db.query(Customer).count(),
-            'active_calls': db.query(CallLog).filter(
-                CallLog.status.in_(['initiated', 'connected'])
-            ).count(),
-            'recent_calls_24h': db.query(CallLog).filter(
-                CallLog.created_at >= datetime.utcnow() - timedelta(hours=24)
-            ).count()
-        }
-        return jsonify(stats)
+        with db_manager.get_db_session() as db:
+            stats = {
+                'total_calls': db.query(CallLog).count(),
+                'total_customers': db.query(Customer).count(),
+                'active_calls': db.query(CallLog).filter(
+                    CallLog.status.in_(['initiated', 'connected'])
+                ).count(),
+                'recent_calls_24h': db.query(CallLog).filter(
+                    CallLog.created_at >= datetime.utcnow() - timedelta(hours=24)
+                ).count()
+            }
+            return jsonify(stats)
     except Exception as e:
         logger.error(f"Error getting dashboard stats: {e}")
         return jsonify({'error': str(e)}), 500
-    finally:
-        db.close()
+
+@app.route('/api/metrics/summary')
+def get_metrics_summary():
+    """Get comprehensive metrics summary"""
+    try:
+        days = request.args.get('days', default=30, type=int)
+        from monitoring.metrics import get_metrics_summary
+        summary = get_metrics_summary(days)
+        return jsonify(summary)
+    except Exception as e:
+        logger.error(f"Error getting metrics summary: {e}")
+        return jsonify({
+            "error": "Failed to get metrics summary",
+            "details": str(e) if app.debug else None
+        }), 500
 
 if __name__ == '__main__':
     missing_vars = []
